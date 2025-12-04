@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Frame Composer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom checkerboard pattern for transparency visualization */
+        .checkerboard {
+            background-color: #f0f0f0;
+            background-image:
+                linear-gradient(45deg, #ddd 25%, transparent 25%),
+                linear-gradient(-45deg, #ddd 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #ddd 75%),
+                linear-gradient(-45deg, transparent 75%, #ddd 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        
+        /* Hide scrollbars for cleaner look */
+        body {
+            overflow-x: hidden;
+        }
+
+        /* Range slider styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #4F46E5;
+            cursor: pointer;
+            margin-top: -6px; 
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #E5E7EB;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm p-4 sticky top-0 z-10">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                <h1 class="font-bold text-xl tracking-tight">Frame<span class="text-indigo-600">Composer</span></h1>
+            </div>
+            <button id="downloadBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Save Image
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col md:flex-row max-w-6xl mx-auto w-full p-4 gap-6">
+        
+        <!-- Controls Sidebar -->
+        <aside class="w-full md:w-80 flex flex-col gap-6 order-2 md:order-1">
+            
+            <!-- Instructions -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <h2 class="font-semibold text-sm text-slate-400 uppercase tracking-wider mb-3">1. Upload Assets</h2>
+                
+                <div class="space-y-3">
+                    <!-- Frame Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Frame Image</label>
+                        <p class="text-xs text-slate-500 mb-2">Must be PNG with transparent center</p>
+                        <label class="flex items-center justify-center w-full h-12 px-4 transition bg-white border-2 border-slate-200 border-dashed rounded-lg appearance-none cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 focus:outline-none">
+                            <span class="flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                <span class="text-sm text-indigo-600 font-medium">Choose Frame</span>
+                            </span>
+                            <input type="file" id="frameInput" accept="image/png, image/webp" class="hidden">
+                        </label>
+                    </div>
+
+                    <!-- Photo Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Your Photo</label>
+                        <label class="flex items-center justify-center w-full h-12 px-4 transition bg-white border-2 border-slate-200 border-dashed rounded-lg appearance-none cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 focus:outline-none">
+                            <span class="flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                <span class="text-sm text-indigo-600 font-medium">Choose Photo</span>
+                            </span>
+                            <input type="file" id="photoInput" accept="image/*" class="hidden">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Controls -->
+            <div id="controlsArea" class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 opacity-50 pointer-events-none transition-opacity">
+                <h2 class="font-semibold text-sm text-slate-400 uppercase tracking-wider mb-3">2. Adjust Photo</h2>
+                
+                <div class="space-y-5">
+                    <!-- Zoom -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm font-medium text-slate-700">Zoom</label>
+                            <span id="zoomVal" class="text-xs text-slate-500">100%</span>
+                        </div>
+                        <input type="range" id="zoomRange" min="0.1" max="3" step="0.05" value="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- Rotate -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm font-medium text-slate-700">Rotate</label>
+                            <span id="rotateVal" class="text-xs text-slate-500">0°</span>
+                        </div>
+                        <input type="range" id="rotateRange" min="-180" max="180" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- Reset -->
+                    <button id="resetBtn" class="w-full py-2 text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">Reset Position</button>
+                    
+                    <p class="text-xs text-center text-slate-400 mt-2 italic">
+                        💡 Tip: Click and drag on the canvas to move the photo.
+                    </p>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- Canvas Area -->
+        <div class="flex-grow flex items-center justify-center bg-slate-200/50 rounded-xl border border-slate-200 p-4 order-1 md:order-2 overflow-hidden relative">
+            
+            <!-- Empty State Message -->
+            <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 pointer-events-none z-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                <p>Upload a Frame to start</p>
+            </div>
+
+            <!-- The Canvas -->
+            <canvas id="editorCanvas" class="shadow-2xl checkerboard max-w-full max-h-[70vh] cursor-move z-10 hidden"></canvas>
+        </div>
+
+    </main>
+
+    <script>
+        // DOM Elements
+        const canvas = document.getElementById('editorCanvas');
+        const ctx = canvas.getContext('2d');
+        const frameInput = document.getElementById('frameInput');
+        const photoInput = document.getElementById('photoInput');
+        const zoomRange = document.getElementById('zoomRange');
+        const rotateRange = document.getElementById('rotateRange');
+        const zoomVal = document.getElementById('zoomVal');
+        const rotateVal = document.getElementById('rotateVal');
+        const controlsArea = document.getElementById('controlsArea');
+        const emptyState = document.getElementById('emptyState');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // State
+        let frameImg = new Image();
+        let photoImg = new Image();
+        let isFrameLoaded = false;
+        let isPhotoLoaded = false;
+        
+        let state = {
+            scale: 1,
+            rotation: 0,
+            x: 0,
+            y: 0,
+            isDragging: false,
+            lastMouseX: 0,
+            lastMouseY: 0
+        };
+
+        // Initialize
+        downloadBtn.disabled = true;
+
+        // --- 1. Handling File Uploads ---
+
+        frameInput.addEventListener('change', (e) => {
+            handleImageUpload(e.target.files[0], true);
+        });
+
+        photoInput.addEventListener('change', (e) => {
+            handleImageUpload(e.target.files[0], false);
+        });
+
+        function handleImageUpload(file, isFrame) {
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = isFrame ? frameImg : photoImg;
+                img.onload = () => {
+                    if (isFrame) {
+                        isFrameLoaded = true;
+                        initCanvasSize();
+                        canvas.classList.remove('hidden');
+                        emptyState.classList.add('hidden');
+                    } else {
+                        isPhotoLoaded = true;
+                        resetPhotoPosition();
+                        enableControls();
+                    }
+                    draw();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- 2. Canvas Logic ---
+
+        function initCanvasSize() {
+            // Set canvas size to match the frame's native resolution
+            // This ensures high quality export
+            canvas.width = frameImg.width;
+            canvas.height = frameImg.height;
+            draw();
+        }
+
+        function resetPhotoPosition() {
+            if (!isPhotoLoaded) return;
+            
+            state.rotation = 0;
+            state.x = canvas.width / 2;
+            state.y = canvas.height / 2;
+            
+            // Calculate scale to "fit" the photo within the canvas initially
+            const scaleX = canvas.width / photoImg.width;
+            const scaleY = canvas.height / photoImg.height;
+            // Use the larger scale so it covers the hole (cover mode-ish)
+            state.scale = Math.max(scaleX, scaleY) * 0.8; 
+            
+            // Update inputs
+            updateInputs();
+        }
+
+        function enableControls() {
+            controlsArea.classList.remove('opacity-50', 'pointer-events-none');
+            downloadBtn.disabled = false;
+        }
+
+        function updateInputs() {
+            zoomRange.value = state.scale;
+            rotateRange.value = state.rotation;
+            zoomVal.innerText = Math.round(state.scale * 100) + '%';
+            rotateVal.innerText = Math.round(state.rotation) + '°';
+        }
+
+        // --- 3. The Draw Loop ---
+
+        function draw() {
+            // 1. Clear Canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Draw Photo (Bottom Layer)
+            if (isPhotoLoaded) {
+                ctx.save();
+                
+                // Move context to the photo's center position
+                ctx.translate(state.x, state.y);
+                
+                // Apply rotation
+                ctx.rotate(state.rotation * Math.PI / 180);
+                
+                // Apply Scale
+                ctx.scale(state.scale, state.scale);
+                
+                // Draw image centered at the new origin
+                ctx.drawImage(photoImg, -photoImg.width / 2, -photoImg.height / 2);
+                
+                ctx.restore();
+            }
+
+            // 3. Draw Frame (Top Layer)
+            if (isFrameLoaded) {
+                ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        // --- 4. Interactivity (Drag, Zoom, Rotate) ---
+
+        // Input Listeners
+        zoomRange.addEventListener('input', (e) => {
+            state.scale = parseFloat(e.target.value);
+            zoomVal.innerText = Math.round(state.scale * 100) + '%';
+            draw();
+        });
+
+        rotateRange.addEventListener('input', (e) => {
+            state.rotation = parseFloat(e.target.value);
+            rotateVal.innerText = Math.round(state.rotation) + '°';
+            draw();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            resetPhotoPosition();
+            draw();
+        });
+
+        // Mouse/Touch Drag Logic
+        // We need to map visual coordinates to canvas pixel coordinates
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            // Handle both touch and mouse
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function startDrag(e) {
+            if (!isPhotoLoaded) return;
+            e.preventDefault(); // Prevent scrolling on touch
+            state.isDragging = true;
+            const coords = getCanvasCoordinates(e);
+            state.lastMouseX = coords.x;
+            state.lastMouseY = coords.y;
+            canvas.style.cursor = 'grabbing';
+        }
+
+        function stopDrag() {
+            state.isDragging = false;
+            canvas.style.cursor = 'move';
+        }
+
+        function drag(e) {
+            if (!state.isDragging) return;
+            e.preventDefault();
+
+            const coords = getCanvasCoordinates(e);
+            const deltaX = coords.x - state.lastMouseX;
+            const deltaY = coords.y - state.lastMouseY;
+
+            state.x += deltaX;
+            state.y += deltaY;
+
+            state.lastMouseX = coords.x;
+            state.lastMouseY = coords.y;
+
+            draw();
+        }
+
+        // Mouse Events
+        canvas.addEventListener('mousedown', startDrag);
+        window.addEventListener('mouseup', stopDrag);
+        window.addEventListener('mousemove', drag);
+
+        // Touch Events
+        canvas.addEventListener('touchstart', startDrag, {passive: false});
+        window.addEventListener('touchend', stopDrag);
+        window.addEventListener('touchmove', drag, {passive: false});
+
+
+        // --- 5. Download ---
+        
+        downloadBtn.addEventListener('click', () => {
+            if(!isFrameLoaded) return;
+            
+            // Create a temporary link
+            const link = document.createElement('a');
+            link.download = 'framed-photo.png';
+            link.href = canvas.toDataURL('image/png', 1.0); // High quality PNG
+            link.click();
+        });
+
+    </script>
+</body>
+</html>
